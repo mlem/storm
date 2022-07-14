@@ -35,6 +35,7 @@ jobs:
       # setup gradle gpg secrets
       - name: Setup gradle GPG properties
         run: |
+          mkdir -p ~/.gradle
           cat > ~/.gradle/gradle.settings<< EOF
           signing.keyId=$GPG_KEY_ID
           signing.password=$GPG_PASSPHRASE
