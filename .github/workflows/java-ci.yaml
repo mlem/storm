@@ -35,8 +35,7 @@ jobs:
       # setup gradle gpg secrets
       - name: Setup gradle GPG properties
         run: |
-          mkdir -p ~/.gradle
-          cat > ~/.gradle/gradle.settings<< EOF
+          cat >> ./gradle.settings<< EOF
           signing.keyId=$GPG_KEY_ID
           signing.password=$GPG_PASSPHRASE
           signing.secretKeyRingFile=/home/runner/.gnupg/trustdb.gpg
