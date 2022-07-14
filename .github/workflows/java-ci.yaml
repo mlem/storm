@@ -30,6 +30,7 @@ jobs:
       # as described in this answer https://stackoverflow.com/a/61748039/1022119
       - name: Configure GPG Key
         run: |
+          export GPG_TTY=$(tty)
           mkdir -p ~/.gnupg/
           printf %s "$GPG_SIGNING_KEY" > ~/.gnupg/private.key
           gpg --import ~/.gnupg/private.key
