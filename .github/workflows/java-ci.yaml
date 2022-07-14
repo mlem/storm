@@ -24,6 +24,28 @@ jobs:
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '17'
+      # Configure GPG key first
+      # To create your gpg key run
+      # gpg --export-secret-keys YOUR_ID_HERE | base64 > private.key
+      # as described in this answer https://stackoverflow.com/a/61748039/1022119
+      - name: Configure GPG Key
+        run: |
+          mkdir -p ~/.gnupg/
+          print "$GPG_SIGNING_KEY" | base64 --decode > ~/.gnupg/private.key
+          gpg --import ~/.gnupg/private.key
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+      # setup gradle gpg secrets
+      - name: Setup gradle GPG properties
+        run: |
+          cat > ~/.gradle/gradle.settings<< EOF
+          signing.keyId=$GPG_KEY_ID
+          signing.password=$GPG_PASSPHRASE
+          signing.secretKeyRingFile=~/.gnupg/private.key
+          EOF
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       # Cache gradle temporary files
       - name: Cache gradle files
         uses: actions/cache@v2
