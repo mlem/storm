@@ -32,6 +32,17 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      # setup gradle gpg secrets
+      - name: Setup gradle GPG properties
+        run: |
+          cat > ~/.gradle/gradle.settings<< EOF
+          signing.keyId=$GPG_KEY_ID
+          signing.password=$GPG_PASSPHRASE
+          signing.secretKeyRingFile=/home/runner/.gnupg/trustdb.gpg
+          EOF
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       # Cache gradle temporary files
       - name: Cache gradle files
         uses: actions/cache@v2
