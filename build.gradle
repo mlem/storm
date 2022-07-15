@@ -32,11 +32,14 @@ apply from: 'publish.gradle'
 String sIsCI = System.getenv("CI") ?: project.ext.has('CI') ? project.ext.get('CI') : null
 boolean isCI = sIsCI != null ? Boolean.parseBoolean(sIsCI) : false
 
+String versionSuffix = System.getenv("STAGING") ? "" :
+        project.ext.has('versionSuffix') ? project.ext.get('versionSuffix') : "-SNAPSHOT"
+
 allprojects {
     repositories { mavenCentral() }
     project.ext.set('CI', isCI)
     group 'at.mlem'
-    version '0.2.3'
+    version '0.2.3' + versionSuffix
 }
 
 // make sure to configure zombie subproject first because other
@@ -247,16 +250,6 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            name = "OSSRH"
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
-            }
-        }
-    }
 }
 
 signing {
@@ -268,6 +261,9 @@ nexusPublishing {
         sonatype {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+
+            username = System.getenv("MAVEN_USERNAME")
+            password = System.getenv("MAVEN_PASSWORD")
         }
     }
 }
