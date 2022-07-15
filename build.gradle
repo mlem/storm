@@ -253,6 +253,7 @@ publishing {
 }
 
 signing {
+    useGpgCmd()
     sign(publishing.publications.apiMavenJava, publishing.publications.coreMavenJava)
 }
 
