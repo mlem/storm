@@ -39,7 +39,7 @@ allprojects {
     repositories { mavenCentral() }
     project.ext.set('CI', isCI)
     group 'at.mlem'
-    version '0.2.4' + versionSuffix
+    version '0.2.5' + versionSuffix
 }
 
 // make sure to configure zombie subproject first because other
