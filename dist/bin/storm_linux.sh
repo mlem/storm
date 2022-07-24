@@ -87,9 +87,9 @@ ${LIB_PATH}/asm-9.1.jar:\
 ${LIB_PATH}/asm-analysis-9.1.jar:\
 ${LIB_PATH}/asm-tree-9.1.jar:\
 ${LIB_PATH}/asm-util-9.1.jar:\
-${LIB_PATH}/guava-30.1.1-jre.jar:\
-${LIB_PATH}/log4j-api-2.14.0.jar:\
-${LIB_PATH}/log4j-core-2.14.0.jar:\
+${LIB_PATH}/guava-31.1-jre.jar:\
+${LIB_PATH}/log4j-api-2.17.2.jar:\
+${LIB_PATH}/log4j-core-2.17.2.jar:\
 ${PZ_HOME}:\
 ${PZ_HOME}/*"
 
