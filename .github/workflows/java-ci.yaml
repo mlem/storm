@@ -15,7 +15,7 @@ jobs:
     name: Build and test on Linux
     runs-on: ubuntu-latest
     env:
-      PZ_VERSION: "41.71"
+      PZ_VERSION: "41.73"
     steps:
       # Checkout repository
       - uses: actions/checkout@v3
@@ -72,6 +72,11 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           arguments: classes -s
+      # Generate versionFile.txt
+      - name: Assemble classes
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: currentVersion
       # Assemble distribution
       - name: Assemble distributions
         uses: burrunan/gradle-cache-action@v1

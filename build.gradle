@@ -39,7 +39,17 @@ allprojects {
     repositories { mavenCentral() }
     project.ext.set('CI', isCI)
     group 'at.mlem'
-    version '0.2.5' + versionSuffix
+    version '0.2.6' + versionSuffix
+}
+
+tasks.create('currentVersion') {
+    outputs.file('dist/bin/versionFile.txt')
+    inputs.property('version', project.version)
+
+    doLast {
+        project.file('dist/bin/versionFile.txt').delete()
+        project.file('dist/bin/versionFile.txt') << project.version
+    }
 }
 
 // make sure to configure zombie subproject first because other
@@ -157,7 +167,7 @@ jar {
 distributions.main {
     distributionBaseName.set("storm-${zomboidVersion}")
     contents {
-        it.from('README.md', 'LICENSE', 'CHANGELOG.md')
+        it.from('README.md', 'LICENSE', 'CHANGELOG.md', 'versionFile.txt')
         it.exclude {
             File file = it.file
             if (!isCI) {

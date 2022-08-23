@@ -5,6 +5,10 @@
 @rem
 @rem ##########################################################################
 
+
+@rem Read Zomboid Version before changing directory
+for /f "delims=" %%x in ('type versionFile.txt') do set STORM_VERSION=%%x
+
 @rem Assume launch script is in 'pz/storm/bin' directory
 @rem and declare storm and zomboid root directories
 set STORM_HOME=%~dp0\..\
@@ -128,7 +132,7 @@ set CLASSPATH=%LIB_PATH%\storm-@stormVersion@.jar;^
 %LIB_PATH%\log4j-core-2.17.2.jar;^
 %PZ_CLASSPATH%
 
-echo Launching Zomboid Storm...
+echo Launching Zomboid Storm %STORM_VERSION%...
 echo.
 "%JAVA_EXE%" -Dzomboid.steam=1 -Dzomboid.znetlog=1 -XX:-CreateCoredumpOnCrash -XX:-OmitStackTraceInFastThrow -Xms1800m -Xmx2048m -Djava.library.path="%PZ_HOME%/win64/;%PZ_HOME%" -classpath "%CLASSPATH%" io.pzstorm.storm.core.StormLauncher %*
 
