@@ -18,9 +18,11 @@
 
 package io.pzstorm.storm.util;
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -320,5 +322,26 @@ public class AsmUtils {
 			return ((VarInsnNode) a).var == ((VarInsnNode) b).var;
 		}
 		return true;
+	}
+
+	public static void dumpClass(byte[] input, String className) {
+		try {
+			if (!className.isEmpty())
+			{
+				String path = "build\\modifiedClasses\\" + className.replaceAll("\\.", "\\\\") + ".class";
+				File file = new File(path);
+				file.getParentFile().mkdirs();
+				Logger.getGlobal().info(file.getAbsolutePath() + " canWrite? " + file.canWrite() + " isFile? " + file.isFile() + " isFolder? " + file.isDirectory());
+
+				try (FileOutputStream fileOutputStream = new FileOutputStream(file);
+				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+				) {
+					bufferedOutputStream.write(input);
+				}
+			}
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

@@ -195,6 +195,8 @@ public class StormClassLoader extends ClassLoader {
 						clazz = defineClass(name, input, 0, input.length);
 						if (clazz.getClassLoader() == this) {
 							StormLogger.debug("Successfully loaded class with StormClassLoader");
+						 	// uncomment the line below, if you want to see how the classes look transformed
+							//AsmUtils.dumpClass(input, name);
 						}
 						else throw new RuntimeException("Unable to load class with StormClassLoader");
 					}

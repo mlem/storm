@@ -104,7 +104,9 @@ JAVA_OPTS="-XX:-CreateMinidumpOnCrash \
 SYS_PROPS="-Djava.library.path=${PZ_HOME}:${PZ_HOME}/linux64:\
 ${PZ_HOME}/jre64/lib/amd64 -Dorg.lwjgl.librarypath=${PZ_HOME}"
 
-echo "Launching Zomboid Storm..."
+STORM_VERSION=`cat versionFile.txt`
+
+echo "Launching Zomboid Storm $STORM_VERSION..."
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
 eval set -- $PZ_OPTS $JAVA_OPTS $SYS_PROPS -classpath "$CLASSPATH" io.pzstorm.storm.core.StormLauncher
