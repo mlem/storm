@@ -39,7 +39,7 @@ allprojects {
     repositories { mavenCentral() }
     project.ext.set('CI', isCI)
     group 'at.mlem'
-    version '0.2.6' + versionSuffix
+    version '0.2.7' + versionSuffix
 }
 
 tasks.create('currentVersion') {
