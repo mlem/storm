@@ -21,6 +21,7 @@ package io.pzstorm.storm.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.pzstorm.storm.patch.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.MethodVisitor;
@@ -31,10 +32,6 @@ import org.objectweb.asm.tree.MethodNode;
 import com.google.common.collect.ImmutableMap;
 
 import io.pzstorm.storm.hook.*;
-import io.pzstorm.storm.patch.DebugLogPatch;
-import io.pzstorm.storm.patch.DebugLogStreamPatch;
-import io.pzstorm.storm.patch.GameWindowPatch;
-import io.pzstorm.storm.patch.ZomboidPatch;
 
 /**
  * This class defines, initializes and stores {@link StormClassTransformer} instances.
@@ -99,6 +96,7 @@ public class StormClassTransformers {
 		/////////////////////
 
 		registerTransformer("zombie.debug.DebugLog", new DebugLogPatch());
+		registerTransformer("zombie.Lua.LuaManager$Exposer", new ExposerPatch());
 		registerTransformer("zombie.debug.DebugLogStream", new DebugLogStreamPatch(),
 				ImmutableMap.<MethodData, MethodMaxs>builder()
 						.put(new MethodData("printException",
