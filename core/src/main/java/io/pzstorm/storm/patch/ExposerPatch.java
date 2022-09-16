@@ -18,12 +18,13 @@
 
 package io.pzstorm.storm.patch;
 
-import io.pzstorm.storm.core.StormClassTransformer;
-import io.pzstorm.storm.util.AsmUtils;
+import java.util.List;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-import java.util.List;
+import io.pzstorm.storm.core.StormClassTransformer;
+import io.pzstorm.storm.util.AsmUtils;
 
 /**
  * Adds the ability to register your own Lua methods with {@link se.krka.kahlua.integration.annotations.LuaMethod}.
