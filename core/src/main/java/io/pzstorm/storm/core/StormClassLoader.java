@@ -202,7 +202,7 @@ public class StormClassLoader extends ClassLoader {
 					}
 				}
 				catch (IOException | ReflectiveOperationException e) {
-					throw new RuntimeException(e);
+					throw new RuntimeException("Problems with " + name, e);
 				}
 			}
 		}
