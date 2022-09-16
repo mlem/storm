@@ -25,4 +25,8 @@ package io.pzstorm.storm.mod;
  */
 public interface ZomboidMod {
 	void registerEventHandlers();
+
+	default void registerLuaClasses() {
+		// default implementation, so it's optional to be overwritten
+	}
 }

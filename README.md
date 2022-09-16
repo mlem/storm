@@ -144,15 +144,44 @@ All methods in registered event handlers annotated with `SubscribeEvent` annotat
 
 **Do not mix static and instance subscribed methods**. Doing so will cause an exception and crash the game. Registered handler has to have all subscribed methods declared as either static or instance methods depending on the method use to register the handler.
 
+### Lua Methods
+
+Sometimes you want to make your code callable from your Lua scripts. In order to expose a method to Lua, you need to annotate 
+it with @LuaMethod.
+
+```java
+    @LuaMethod(
+            name = "methodNameUsedInLua",
+            global = true
+    )
+    public static void someMethod() {
+        // here comes your implementation
+    }
+```
+
+This is the Project Zomboid way to mark methods. But they need to be added to the Lua Framework in order to be available.
+We call it **exposing** methods to Lua. To expose it, you need to implement `ZomboidMod#registerLuaClasses`
+and register the classes you need exposed.
+
+```java
+@Override
+public void registerLuaClasses() {
+        StormLuaExposer.registerLuaClass(ImplNeededByLua.class);
+}
+```
+
 ## Contribute
 
 Anyone can contribute to the Storm project, here are a few ways to start:
 
-- **Help test Storm** - Simply launch and play the game using Storm. You can play with or without Lua and/or Java mods, but note that there is no need to install any mods, just running the game with Storm is enough to test the core framework. If you come across any issue please report them using the project [issue tracker](https://github.com/pzstorm/storm/issues/new). This helps developers know what issues they need to address in future releases.
+- **Help test Storm** - Simply launch and play the game using Storm. You can play with or without Lua and/or Java mods, but 
+  note that there is no need to install any mods, just running the game with Storm is enough to test the core framework. If 
+  you come across any issue please report them using the project [issue tracker](https://github.com/mlem/storm/issues/new). 
+  This helps developers know what issues they need to address in future releases.
 - **Create mods** - Create and publish Java mods that use the Storm framework. 
 - **Spread the word** - Tell all your friends about the Storm project and how it changed your life (for the better).
 - **Join the community** - Join other Storm enthusiasts on [Discord](https://discord.gg/ZCmg9VsvSW) and discuss the future of this project.
 
 ## License
 
-This project is licensed under [GNU General Public License v3.0](https://github.com/pzstorm/storm/blob/master/LICENSE).
+This project is licensed under [GNU General Public License v3.0](https://github.com/mlem/storm/blob/master/LICENSE).

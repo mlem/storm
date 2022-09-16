@@ -160,6 +160,7 @@ public class StormBootstrap {
 
 		for (Object mod : (Set<Object>) modRegistry.getDeclaredMethod("getRegisteredMods").invoke(null)) {
 			zomboidModClass.getDeclaredMethod("registerEventHandlers").invoke(mod);
+			zomboidModClass.getDeclaredMethod("registerLuaClasses").invoke(mod);
 		}
 	}
 }
