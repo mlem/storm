@@ -18,10 +18,10 @@
 
 package io.pzstorm.storm.lua;
 
-import zombie.Lua.LuaManager;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import zombie.Lua.LuaManager;
 
 /**
  * Sometimes you want to expose new methods to Lua. Add your class by calling {@link #registerLuaClass(Class)}

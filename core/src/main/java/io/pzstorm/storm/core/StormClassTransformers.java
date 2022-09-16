@@ -21,7 +21,6 @@ package io.pzstorm.storm.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.pzstorm.storm.patch.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.MethodVisitor;
@@ -32,6 +31,7 @@ import org.objectweb.asm.tree.MethodNode;
 import com.google.common.collect.ImmutableMap;
 
 import io.pzstorm.storm.hook.*;
+import io.pzstorm.storm.patch.*;
 
 /**
  * This class defines, initializes and stores {@link StormClassTransformer} instances.
