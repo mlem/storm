@@ -15,7 +15,7 @@ jobs:
     name: Build and test on Linux
     runs-on: ubuntu-latest
     env:
-      PZ_VERSION: "41.73"
+      PZ_VERSION: "41.76"
     steps:
       # Checkout repository
       - uses: actions/checkout@v3
