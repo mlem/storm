@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Objects;
 
+import io.pzstorm.storm.util.AsmUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,6 +172,7 @@ public class StormClassLoader extends ClassLoader {
 	private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
 
 		Class<?> clazz = findLoadedClass(name);
+		byte[] input = new byte[0];
 		if (clazz == null)
 		{
 			StormLogger.debug("Preparing to load class " + name);
@@ -178,7 +180,7 @@ public class StormClassLoader extends ClassLoader {
 			{
 				StormLogger.debug("Loading with StormClassLoader");
 				try {
-					byte[] input = getRawClassByteArray(name);
+					input = getRawClassByteArray(name);
 
 					if (StormBootstrap.hasLoaded())
 					{
@@ -194,14 +196,15 @@ public class StormClassLoader extends ClassLoader {
 
 						clazz = defineClass(name, input, 0, input.length);
 						if (clazz.getClassLoader() == this) {
-							StormLogger.debug("Successfully loaded class with StormClassLoader");
+							StormLogger.debug("Successfully loaded class with StormClassLoader " + name);
 						 	// uncomment the line below, if you want to see how the classes look transformed
-							//AsmUtils.dumpClass(input, name);
+							// AsmUtils.dumpClass(input, name);
 						}
-						else throw new RuntimeException("Unable to load class with StormClassLoader");
+						else throw new RuntimeException("Unable to load class with StormClassLoader " + name);
 					}
 				}
-				catch (IOException | ReflectiveOperationException e) {
+				catch (IOException | ReflectiveOperationException | ClassFormatError e) {
+					// AsmUtils.dumpClass(input, name);
 					throw new RuntimeException("Problems with " + name, e);
 				}
 			}

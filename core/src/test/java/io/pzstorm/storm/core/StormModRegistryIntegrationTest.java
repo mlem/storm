@@ -17,13 +17,10 @@ class StormModRegistryIntegrationTest extends ModLoaderTestFixture {
 	private static final File TEMP_DIR = IntegrationTest.getTemporaryBuildDir(StormModRegistryIntegrationTest.class);
 
 	private static final Class<?> STORM_MOD_LOADER_CLASS;
-	private static final Class<?> STORM_MOD_REGISTRY_CLASS;
 
 	private static final Constructor<?> STORM_MOD_LOADER_CONSTRUCTOR;
 
 	private static final Method GET_JAR_RESOURCE_PATHS;
-	private static final Method CATALOG_MOD_JARS;
-	private static final Method LOAD_MOD_METADATA;
 	private static final Method LOAD_MOD_CLASSES;
 
 	private static final Method GET_REGISTERED_MOD;
@@ -35,28 +32,19 @@ class StormModRegistryIntegrationTest extends ModLoaderTestFixture {
 			STORM_MOD_LOADER_CLASS = Class.forName(
 					"io.pzstorm.storm.core.StormModLoader", true, StormBootstrap.CLASS_LOADER
 			);
-			STORM_MOD_REGISTRY_CLASS = Class.forName(
-					"io.pzstorm.storm.core.StormModRegistry", true, StormBootstrap.CLASS_LOADER
-			);
 			STORM_MOD_LOADER_CONSTRUCTOR = STORM_MOD_LOADER_CLASS.getDeclaredConstructor();
 			STORM_MOD_LOADER_CONSTRUCTOR.setAccessible(true);
 
 			GET_JAR_RESOURCE_PATHS = STORM_MOD_LOADER_CLASS.getDeclaredMethod("getResourcePaths");
 			GET_JAR_RESOURCE_PATHS.setAccessible(true);
 
-			CATALOG_MOD_JARS = STORM_MOD_LOADER_CLASS.getDeclaredMethod("catalogModJars");
-			CATALOG_MOD_JARS.setAccessible(true);
-
-			LOAD_MOD_METADATA = STORM_MOD_LOADER_CLASS.getDeclaredMethod("loadModMetadata");
-			LOAD_MOD_METADATA.setAccessible(true);
-
 			LOAD_MOD_CLASSES = STORM_MOD_LOADER_CLASS.getDeclaredMethod("loadModClasses");
 			LOAD_MOD_CLASSES.setAccessible(true);
 
-			GET_REGISTERED_MOD = STORM_MOD_REGISTRY_CLASS.getDeclaredMethod("getRegisteredMod", String.class);
+			GET_REGISTERED_MOD = STORM_MOD_LOADER_CLASS.getDeclaredMethod("getRegisteredMod", String.class);
 			GET_REGISTERED_MOD.setAccessible(true);
 
-			REGISTER_MODS = STORM_MOD_REGISTRY_CLASS.getDeclaredMethod("registerMods");
+			REGISTER_MODS = STORM_MOD_LOADER_CLASS.getDeclaredMethod("registerMods");
 			REGISTER_MODS.setAccessible(true);
 		}
 		catch (ReflectiveOperationException e) {
@@ -73,9 +61,6 @@ class StormModRegistryIntegrationTest extends ModLoaderTestFixture {
 	void shouldRegisterModsThatHaveZomboidModClass() throws Throwable {
 
 		createAndWriteMetadataFiles(TEMP_DIR);
-
-		CATALOG_MOD_JARS.invoke(null);
-		LOAD_MOD_METADATA.invoke(null);
 
 		// assert that mod is not registered
 		Assertions.assertNull(GET_REGISTERED_MOD.invoke(null, "A"));

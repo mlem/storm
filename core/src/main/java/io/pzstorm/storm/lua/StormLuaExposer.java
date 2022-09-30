@@ -25,7 +25,10 @@ import zombie.Lua.LuaManager;
 
 /**
  * Sometimes you want to expose new methods to Lua. Add your class by calling {@link #registerLuaClass(Class)}
+ *
+ * This class is used - it enables mod developers to add their own classes to Lua
  */
+@SuppressWarnings("unused")
 public class StormLuaExposer {
 
 	private final static List<Class> EXPOSED = new ArrayList<>();
@@ -38,6 +41,7 @@ public class StormLuaExposer {
 	 * used by injected code in {@link LuaManager.Exposer#exposeAll()}.
 	 * You shouldn't have any use of it
 	 * @param exposer the exposer class which is called for each registered class
+	 * @see io.pzstorm.storm.patch.ExposerPatch
 	 */
 	public static void exposeAll(LuaManager.Exposer exposer) {
 		for(Class toExpose : EXPOSED) {

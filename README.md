@@ -166,7 +166,7 @@ and register the classes you need exposed.
 ```java
 @Override
 public void registerLuaClasses() {
-        StormLuaExposer.registerLuaClass(ImplNeededByLua.class);
+        StormLuaExposer.registerLuaClass(ImplExposingLuaMethods.class);
 }
 ```
 

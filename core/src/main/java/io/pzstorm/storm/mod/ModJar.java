@@ -67,6 +67,10 @@ public class ModJar extends JarFile {
 		return jarFile.toPath();
 	}
 
+	public File getJarFile() {
+		return jarFile;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 
