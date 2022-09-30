@@ -74,6 +74,11 @@ public class StormEventDispatcher {
 	 */
 	private static final Map<Class<? extends ZomboidEvent>, Set<EventHandlerMethod>> DISPATCH_REGISTRY = new HashMap<>();
 
+
+	public static void reset() {
+		DISPATCH_REGISTRY.clear();
+	}
+
 	/**
 	 * Internally register given method for specified event handler.
 	 *

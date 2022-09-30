@@ -26,12 +26,14 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.pzstorm.storm.event.StormEventDispatcher;
+import io.pzstorm.storm.mod.ZomboidMod;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
@@ -43,6 +45,7 @@ import io.pzstorm.storm.logging.StormLogger;
 import io.pzstorm.storm.mod.ModJar;
 import io.pzstorm.storm.mod.ModMetadata;
 import io.pzstorm.storm.mod.ModVersion;
+import org.jetbrains.annotations.UnmodifiableView;
 
 /**
  * This class is responsible for loading mod components:
@@ -67,6 +70,9 @@ public class StormModLoader extends URLClassLoader {
 	 * This catalog stores {@link ModJar} instances mapped to directory names.
 	 */
 	private static final Map<String, ImmutableSet<ModJar>> JAR_CATALOG = new HashMap<>();
+
+
+	private static final Map<String, ZomboidMod> MOD_REGISTRY = new HashMap<>();
 
 	StormModLoader(URL[] urls) {
 		super(ObjectArrays.concat(urls, getResourcePaths(), URL.class));
@@ -100,72 +106,55 @@ public class StormModLoader extends URLClassLoader {
 	}
 
 	/**
-	 * Find and catalog {@code jar} files found in {@code $HOME/Zomboid/mods/} subdirectories.
-	 * The found jars will be mapped to the name of directory in which they were discovered.
-	 * Note that directories that do not contain a {@code mod.info} file will be excluded
-	 * even if they contain {@code jar} files.
-	 *
-	 * @throws IOException if unable to create {@code Zomboid/mods} directory structure,
-	 * 		an I/O error occurred while walking file tree or constructing {@link ModJar} instance.
+	 * Before the mods are loaded, the jar catalog should be reset.
 	 */
-	public static void catalogModJars() throws IOException {
-
+	@SuppressWarnings("unused")
+	public static void resetCatalogs() {
 		StormLogger.info(String.format("%s mod jar catalog", JAR_CATALOG.isEmpty() ? "Building" : "Rebuilding"));
-		File zomboidLocalDir = getUserHomePath().resolve("Zomboid").toFile();
 
-		if (!zomboidLocalDir.exists() && !zomboidLocalDir.mkdir()) {
-			throw new IOException("Unable to create 'Zomboid' directory in '" + getUserHomePath() + '\'');
-		}
-		File zomboidModsDir = new File(zomboidLocalDir, "mods");
-		StormLogger.debug("Cataloging mod jars in '" + zomboidModsDir.getPath() + '\'');
-
-		if (!zomboidModsDir.exists() && !zomboidModsDir.mkdir()) {
-			throw new IOException("Unable to create 'mods' directory in '" + zomboidModsDir.toPath() + '\'');
-		}
 		// clear map before entering new data
 		JAR_CATALOG.clear();
 
-		for (Path modDir : listModDirectories(zomboidModsDir))
-		{
-			Set<ModJar> modJars = new HashSet<>();
-			String modFileName = modDir.getFileName().toString();
-			try (Stream<Path> stream = Files.walk(modDir, 1))
-			{
-				Set<Path> files = stream.filter(Files::isRegularFile).collect(Collectors.toSet());
 
-				// mod directory has to contain mod metadata file
-				if (files.contains(modDir.resolve("mod.info")))
-				{
-					for (Path modJar : listJarsInDirectory(modDir)) {
-						modJars.add(new ModJar(modJar.toFile()));
-					}
-					JAR_CATALOG.put(modDir.toFile().getName(), ImmutableSet.copyOf(modJars));
+		StormLogger.info(String.format("%s mod metadata catalog", METADATA_CATALOG.isEmpty() ? "Building" : "Rebuilding"));
 
-					StormLogger.debug("Created new jar catalog entry:");
-					StormLogger.debug(String.format("Found %d jars in mod directory '%s'", modJars.size(), modFileName));
-				}
-				else StormLogger.warn("Skipped jar catalog entry for mod directory '" + modFileName + '\'');
-			}
-		}
+		// clear map before entering new data
+		METADATA_CATALOG.clear();
+
+
+		StormLogger.info(String.format("%s mod class catalog", CLASS_CATALOG.isEmpty() ? "Building" : "Rebuilding"));
+
+		// clear map before entering new data
+		CLASS_CATALOG.clear();
+
+		StormLogger.info(String.format("%s mod registry", MOD_REGISTRY.isEmpty() ? "Building" : "Rebuilding"));
+
+		MOD_REGISTRY.clear();
+
+		StormLogger.info(String.format("Resetting event dispatcher"));
+
+		StormEventDispatcher.reset();
 	}
 
 	/**
-	 * Returns a {@code Set} of paths that denote subdirectories in the given directory {@code File}.
-	 * This method will not employ recursion when searching for files. Search depth is one
-	 * directory which means that only immediate subdirectories will be included.
-	 *
-	 * @param zomboidDir directory to search for subdirectories.
-	 *
-	 * @throws RuntimeException if an I/O error occurs when opening the directory.
+	 * called from PZ
 	 */
-	private static Set<Path> listModDirectories(File zomboidDir) {
+	@SuppressWarnings("unused")
+	public static void addJarFiles(File modDir) {
 
-		try (Stream<Path> stream = Files.list(zomboidDir.toPath())) {
-			return stream.filter(Files::isDirectory).collect(Collectors.toSet());
+		Set<ModJar> modJars = new HashSet<>();
+
+		for (Path modJar : listJarsInDirectory(modDir.toPath())) {
+			try {
+				modJars.add(new ModJar(modJar.toFile()));
+			} catch (IOException e) {
+				StormLogger.error("Couldn't load mod " + modDir.getName(), e);
+			}
 		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		JAR_CATALOG.put(modDir.getName(), ImmutableSet.copyOf(modJars));
+
+		StormLogger.debug("Created new jar catalog entry:");
+		StormLogger.debug(String.format("Found %d jars in mod directory '%s'", modJars.size(), modDir.getName()));
 	}
 
 	/**
@@ -188,67 +177,56 @@ public class StormModLoader extends URLClassLoader {
 	}
 
 	/**
-	 * Load mod metadata for each entry in jar catalog. Before loading mod metadata it is
-	 * important to populate the jar catalog by calling {@link #catalogModJars()} method,
-	 * otherwise this method will only clear the metadata catalog. Metadata is read from
-	 * {@code mod.info} file located in mod root directory. Directories which do not
-	 * contain a metadata file will be excluded from this operation.
 	 *
-	 * @throws IOException if an error occurred when reading from input stream.
+	 * @param modEntry the mod name
+	 * @param allModFiles all files found in the mod folder
+	 * @throws IOException
 	 */
-	public static void loadModMetadata() throws IOException {
+	@SuppressWarnings("unused")
+	public static void registerModInfo(String modEntry, List<String> allModFiles) throws IOException {
 
-		StormLogger.info(String.format("%s mod metadata catalog", JAR_CATALOG.isEmpty() ? "Building" : "Rebuilding"));
-
-		// clear map before entering new data
-		METADATA_CATALOG.clear();
-
-		Path zomboidModsDir = getUserHomePath().resolve("Zomboid/mods");
-		for (String modEntry : JAR_CATALOG.keySet())
-		{
-			File modInfoFile = Paths.get(zomboidModsDir.toString(), modEntry, "mod.info").toFile();
-			if (!modInfoFile.exists() || modInfoFile.isDirectory())
-			{
-				String message = "Unable to register mod in directory '%s' missing 'mod.info' file";
-				StormLogger.error(message, modEntry);
-				continue;
-			}
-			Properties modInfo = new Properties();
-			modInfo.load(new FileInputStream(modInfoFile));
-			StormLogger.debug("Found metadata file for entry '" + modEntry + '\'');
-
-			String modName = modInfo.getProperty("name");
-			if (Strings.isNullOrEmpty(modName))
-			{
-				String message = "Unable to register mod in directory '%s' with missing name, check mod.info file";
-				StormLogger.error(String.format(message, modEntry));
-				continue;
-			}
-			String modVersion = modInfo.getProperty("modversion");
-			if (modVersion == null)
-			{
-				String message = "Unable to register mod '%s' with missing version, check mod.info file";
-				StormLogger.error(String.format(message, modName));
-				continue;
-			}
-			else if (modVersion.isEmpty())
-			{
-				String message = "Mod '%s' has empty version property, using 0.1.0 version instead";
-				StormLogger.warn(message, modName);
-				modVersion = "0.1.0";
-			}
-			ModMetadata metadata = new ModMetadata(modName, new ModVersion(modVersion));
-			METADATA_CATALOG.put(modName, metadata);
-
-			StormLogger.debug("Created new metadata catalog entry: " + metadata);
+		Optional<String> firstModInfo = allModFiles.stream().filter(file -> file.endsWith("mod.info")).findFirst();
+		File modInfoFile = firstModInfo.map(File::new).orElse(null);
+		if(modInfoFile == null) {
+			String message = "Unable to find mod.info file in directory '%s'";
+			StormLogger.error(String.format(message, modEntry));
+			return;
 		}
+		Properties modInfo = new Properties();
+		modInfo.load(new FileInputStream(modInfoFile));
+		StormLogger.debug("Found metadata file for entry '" + modEntry + '\'');
+
+		String modName = modInfo.getProperty("name");
+		if (Strings.isNullOrEmpty(modName))
+		{
+			String message = "Unable to register mod in directory '%s' with missing name, check mod.info file";
+			StormLogger.error(String.format(message, modEntry));
+			return;
+		}
+		String modVersion = modInfo.getProperty("modversion");
+		if (modVersion == null)
+		{
+			String message = "Unable to register mod '%s' with missing version, check mod.info file";
+			StormLogger.error(String.format(message, modName));
+			return;
+		}
+		else if (modVersion.isEmpty())
+		{
+			String message = "Mod '%s' has empty version property, using 0.1.0 version instead";
+			StormLogger.warn(message, modName);
+			modVersion = "0.1.0";
+		}
+		ModMetadata metadata = new ModMetadata(modName, new ModVersion(modVersion));
+		METADATA_CATALOG.put(modName, metadata);
+
+		StormLogger.debug("Created new metadata catalog entry: " + metadata);
 	}
 
 	/**
 	 * Load classes from cataloged {@link ModJar} instances with {@link StormClassLoader}.
 	 * Once loaded the classes will also be cataloged by mapping them to directory name.
 	 * Before loading classes it is important to populate the jar catalog with
-	 * {@link #catalogModJars()} method, otherwise this method will only clear the class catalog.
+	 * {@link #addJarFiles(File)} ()} method, otherwise this method will only clear the class catalog.
 	 */
 	public static void loadModClasses() {
 		StormLogger.info(String.format("%s mod class catalog", JAR_CATALOG.isEmpty() ? "Building" : "Rebuilding"));
@@ -271,8 +249,8 @@ public class StormModLoader extends URLClassLoader {
 					String entryName = jarEntry.getName();
 					String className = entryName.substring(0, entryName.length() - 6);
 					try {
-						modClasses.add(StormBootstrap.CLASS_LOADER.loadClass(
-								className.replace('/', '.'), true));
+						URLClassLoader childClassLoader = jarFileClassLoader(modJar);
+						modClasses.add(Class.forName(className.replace('/', '.'), true, childClassLoader));
 					}
 					catch (ClassNotFoundException e) {
 						throw new RuntimeException(e);
@@ -286,20 +264,88 @@ public class StormModLoader extends URLClassLoader {
 		}
 	}
 
+	@NotNull
+	private static URLClassLoader jarFileClassLoader(ModJar modJar) {
+
+		try
+		{
+			return new URLClassLoader (new URL[] { modJar.getJarFile().toURI().toURL() },
+					StormBootstrap.CLASS_LOADER);
+		}
+		catch (MalformedURLException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
-	 * Returns {@code Path} that denotes {@code user.home} system property.
+	 * Is called on PZ mods loading
 	 */
-	private static Path getUserHomePath() {
-		return Paths.get(System.getProperty("user.home"));
+	@SuppressWarnings("unused")
+	public static void registerAllMods() throws ReflectiveOperationException {
+
+		loadModClasses();
+
+		registerMods();
+
+		// this class should have already been initialized, so just get the reference
+		Class<?> zomboidModClass = Class.forName("io.pzstorm.storm.mod.ZomboidMod", false, StormBootstrap.CLASS_LOADER);
+
+		for (ZomboidMod mod : getRegisteredMods()) {
+			zomboidModClass.getDeclaredMethod("registerEventHandlers").invoke(mod);
+			zomboidModClass.getDeclaredMethod("registerLuaClasses").invoke(mod);
+			StormLogger.info(String.format("Successfully loaded mod %s with class %s",
+					getModName(mod.getClass()),
+					mod.getClass().getCanonicalName()));
+		}
 	}
 
-	@TestOnly
-	static @Nullable ModMetadata getMetadataCatalogEntry(String name) {
-		return METADATA_CATALOG.get(name);
+	/**
+	 * Create and register {@link ZomboidMod} instances from cataloged classes.
+	 * This method searches for classes that implement {@code ZomboidMod} and then instantiates
+	 * and registers the implementation classes. Remember that the class catalogue has to be populated
+	 * before registering mods otherwise no mod instances will be created. Also note that only the first
+	 * implementation class for each catalog entry will be registered, the rest will be ignored.
+	 *
+	 * @throws ReflectiveOperationException if an exception was thrown while
+	 * 		instantiating {@code ZomboidMod} implementation class.
+	 */
+	public static void registerMods() throws ReflectiveOperationException {
+
+		for (Map.Entry<String, ImmutableSet<Class<?>>> entry : StormModLoader.CLASS_CATALOG.entrySet())
+		{
+			// find the first class that implements ZomboidMod interface
+			Optional<Class<?>> modClass = entry.getValue().stream()
+					.filter(ZomboidMod.class::isAssignableFrom).findFirst();
+
+			if (!modClass.isPresent())
+			{
+				ModMetadata meta = StormModLoader.METADATA_CATALOG.get(entry.getKey());
+				String format = "Unable to find ZomboidMod class for mod '%s'";
+
+				StormLogger.warn(String.format(format, meta != null ? meta.name : "unknown"));
+			}
+			else MOD_REGISTRY.put(entry.getKey(), (ZomboidMod) modClass.get().getDeclaredConstructor().newInstance());
+		}
 	}
 
-	@TestOnly
-	static @Nullable ImmutableSet<ModJar> getJarCatalogEntry(String name) {
-		return JAR_CATALOG.get(name);
+	/**
+	 * Retrieve a {@code Set} of registered mods. Note that the returned
+	 * {@code Set} is <b>unmodifiable</b> and modifying it in any way
+	 * will result in an {@code UnsupportedOperationException}.
+	 */
+	public static @UnmodifiableView Set<ZomboidMod> getRegisteredMods() {
+		return Collections.unmodifiableSet(new HashSet<>(MOD_REGISTRY.values()));
+	}
+
+	/**
+	 * returns for the modType the corresponding mod name
+	 * @param modType the registered mod type
+	 * @return the actual mod name
+	 */
+	public static String getModName(Class modType) {
+
+		return MOD_REGISTRY.entrySet().stream()
+				.filter(e -> modType.isInstance(e.getValue())).map(Map.Entry::getKey).findFirst().orElse("");
 	}
 }

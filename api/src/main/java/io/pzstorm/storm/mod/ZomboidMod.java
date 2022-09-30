@@ -23,6 +23,7 @@ package io.pzstorm.storm.mod;
  * a single class that implements this class. Mods that do not implement this class will not be
  * registered and will not be eligible to subscribe to events.
  */
+@SuppressWarnings("unused")
 public interface ZomboidMod {
 	void registerEventHandlers();
 

@@ -57,9 +57,6 @@ class StormLauncher {
 		// redirect uncaught exception logs to Log4J
 		Thread.setDefaultUncaughtExceptionHandler(new StormLogger.Log4JUncaughtExceptionHandler());
 
-		// load and register all local mods found in user.home
-		StormBootstrap.loadAndRegisterMods();
-
 		// load LuaEvent factory and classes
 		classLoader.loadClass("io.pzstorm.storm.event.LuaEventFactory");
 

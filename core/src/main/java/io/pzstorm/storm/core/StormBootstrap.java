@@ -19,8 +19,6 @@
 package io.pzstorm.storm.core;
 
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
-import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -134,33 +132,15 @@ public class StormBootstrap {
 	}
 
 	/**
-	 * Use {@link StormModLoader} to catalog mod components and {@link StormModRegistry}
-	 * to register mod instances from cataloged classes. This method can be called multiple
-	 * times, for example when Storm wants to load new mods from local directory.
-	 *
-	 * @throws ReflectiveOperationException if an error occurred while retrieving or invoking methods.
+	 * Is called on PZ mods loading
 	 */
-	@SuppressWarnings("unchecked")
-	static void loadAndRegisterMods() throws ReflectiveOperationException {
-
-		MOD_LOADER_CLASS.getDeclaredMethod("catalogModJars").invoke(null);
-		MOD_LOADER_CLASS.getDeclaredMethod("loadModMetadata").invoke(null);
-
-		// catalogs were updated so update resource paths for StormClassLoader
+	@SuppressWarnings("unused")
+	public static void resetClassLoader() {
+		// catalogs were reset so update resource paths for StormClassLoader
+		StormModLoader classLoader = new StormModLoader();
 		StormBootstrap.CLASS_LOADER.setModResourceLoader(
-				(URLClassLoader) MOD_LOADER_CLASS.getConstructor().newInstance()
+				classLoader
 		);
-		MOD_LOADER_CLASS.getDeclaredMethod("loadModClasses").invoke(null);
-
-		Class<?> modRegistry = Class.forName("io.pzstorm.storm.core.StormModRegistry", true, CLASS_LOADER);
-		modRegistry.getDeclaredMethod("registerMods").invoke(null);
-
-		// this class should have already been initialized, so just get the reference
-		Class<?> zomboidModClass = Class.forName("io.pzstorm.storm.mod.ZomboidMod", false, CLASS_LOADER);
-
-		for (Object mod : (Set<Object>) modRegistry.getDeclaredMethod("getRegisteredMods").invoke(null)) {
-			zomboidModClass.getDeclaredMethod("registerEventHandlers").invoke(mod);
-			zomboidModClass.getDeclaredMethod("registerLuaClasses").invoke(mod);
-		}
 	}
+
 }

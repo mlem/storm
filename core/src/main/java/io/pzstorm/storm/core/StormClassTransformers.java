@@ -95,6 +95,7 @@ public class StormClassTransformers {
 		// REGISTER PATCHES //
 		/////////////////////
 
+		registerTransformer("zombie.ZomboidFileSystem", new ZomboidFileSystemPatch());
 		registerTransformer("zombie.debug.DebugLog", new DebugLogPatch());
 		registerTransformer("zombie.Lua.LuaManager$Exposer", new ExposerPatch());
 		registerTransformer("zombie.debug.DebugLogStream", new DebugLogStreamPatch(),
