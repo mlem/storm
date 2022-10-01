@@ -31,21 +31,21 @@ import java.util.jar.JarEntry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.pzstorm.storm.event.StormEventDispatcher;
-import io.pzstorm.storm.mod.ZomboidMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 
+import io.pzstorm.storm.event.StormEventDispatcher;
 import io.pzstorm.storm.logging.StormLogger;
 import io.pzstorm.storm.mod.ModJar;
 import io.pzstorm.storm.mod.ModMetadata;
 import io.pzstorm.storm.mod.ModVersion;
-import org.jetbrains.annotations.UnmodifiableView;
+import io.pzstorm.storm.mod.ZomboidMod;
 
 /**
  * This class is responsible for loading mod components:
@@ -141,7 +141,6 @@ public class StormModLoader extends URLClassLoader {
 	 */
 	@SuppressWarnings("unused")
 	public static void addJarFiles(File modDir) {
-
 		Set<ModJar> modJars = new HashSet<>();
 
 		for (Path modJar : listJarsInDirectory(modDir.toPath())) {
@@ -180,6 +179,7 @@ public class StormModLoader extends URLClassLoader {
 	 *
 	 * @param modEntry the mod name
 	 * @param allModFiles all files found in the mod folder
+	 *
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unused")
@@ -267,13 +267,11 @@ public class StormModLoader extends URLClassLoader {
 	@NotNull
 	private static URLClassLoader jarFileClassLoader(ModJar modJar) {
 
-		try
-		{
+		try {
 			return new URLClassLoader (new URL[] { modJar.getJarFile().toURI().toURL() },
 					StormBootstrap.CLASS_LOADER);
 		}
-		catch (MalformedURLException e)
-		{
+		catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
