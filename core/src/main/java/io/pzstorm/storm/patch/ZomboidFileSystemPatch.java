@@ -18,11 +18,13 @@
 
 package io.pzstorm.storm.patch;
 
-import com.google.common.collect.ImmutableList;
-import io.pzstorm.storm.core.StormClassTransformer;
-import io.pzstorm.storm.util.AsmUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+
+import com.google.common.collect.ImmutableList;
+
+import io.pzstorm.storm.core.StormClassTransformer;
+import io.pzstorm.storm.util.AsmUtils;
 
 public class ZomboidFileSystemPatch implements ZomboidPatch {
 
@@ -47,8 +49,7 @@ public class ZomboidFileSystemPatch implements ZomboidPatch {
 				)
 		);
 		// skip to last instruction before the next LabelNode
-		while (!(iteratorTarget.getNext() instanceof LabelNode))
-		{
+		while (!(iteratorTarget.getNext() instanceof LabelNode)) {
 			iteratorTarget = iteratorTarget.getNext();
 		}
 
@@ -76,8 +77,7 @@ public class ZomboidFileSystemPatch implements ZomboidPatch {
 		AbstractInsnNode endOfWhileTarget = AsmUtils.getLastInstructionOfType(loadModsInstructions, JumpInsnNode.class);
 
 		// skip to next FrameNode
-		do
-		{
+		do {
 			endOfWhileTarget = endOfWhileTarget.getNext();
 		} while (!(endOfWhileTarget instanceof FrameNode));
 
@@ -104,8 +104,7 @@ public class ZomboidFileSystemPatch implements ZomboidPatch {
 		);
 
 		// skip to last instruction
-		while (!(searchFoldersTarget.getNext() instanceof LabelNode))
-		{
+		while (!(searchFoldersTarget.getNext() instanceof LabelNode)) {
 			searchFoldersTarget = searchFoldersTarget.getNext();
 		}
 
