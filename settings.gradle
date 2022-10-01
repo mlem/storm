@@ -18,6 +18,10 @@ include 'core'
 // this module is only required when testing or building on CI server
 include 'zombie'
 
+// contains a mod which enables options for storm
+include 'options'
+
+
 // rename each project so that it has 'storm' prefix
 // this is important so that maven generates artifacts with correct names
 rootProject.children.each {
