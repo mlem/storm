@@ -1,0 +1,60 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.filters.FixCrLfFilter
+
+plugins {
+    id 'java'
+    id 'distribution'
+
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+tasks.register('prepareDistribution', Copy) {
+    // Substitute property tokens in files
+    //expand(stormVersion: rootProject.version, zomboidVersion: rootProject.zomboidVersion)
+   // expand(project.properties)
+    into layout.buildDirectory.dir('distribution/StormOptions')
+
+    from(fileTree('src/main/dist')) {
+        exclude "**/*.png"
+        filter(ReplaceTokens, tokens: [stormVersion: rootProject.version, zomboidVersion: rootProject.zomboidVersion])
+
+    }
+
+    from(fileTree('src/main/dist')) {
+        include "**/*.png"
+    }
+}
+
+distributions {
+    main {
+        contents {
+            // include additional distibution files
+            it.from('src/main/resources') {
+                include '**/*.*'
+                filter(ReplaceTokens,
+                        tokens:
+                                [
+                                        stormVersion  : rootProject.version,
+                                        zomboidVersion: rootProject.zomboidVersion
+                                ]
+                )
+            }
+        }
+    }
+
+
+}

@@ -1,0 +1,7 @@
+name=Storm Options Menu
+poster=poster.png
+description=Did you ever get mad at your viewers? Want to lose a bit of your hate and rage? Connect your twitch channel, go live and kill your annoyingly talking viewers
+id=twitch-talking-enemies
+url=https://github.com/mlem/twitch-talking-enemies/zomboid
+modversion=@stormVersion@
+pzversion=@zomboidVersion@
