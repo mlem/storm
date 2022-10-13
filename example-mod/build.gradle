@@ -1,0 +1,96 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.filters.FixCrLfFilter
+
+plugins {
+    id 'io.pzstorm.capsid' version '0.4.2'
+    id 'java'
+    id 'distribution'
+
+}
+
+version = "0.0.1-SNAPSHOT"
+
+
+capsid {
+    isModProject = false
+    setProjectRepository('mlem', 'example-mod')
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    // add storm
+    implementation 'at.mlem:storm-api:0.2.7'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// use a seperate folder for lua files
+sourceSets {
+    lua {
+        resources {
+            srcDirs = ['src/main/lua']
+        }
+    }
+}
+
+// set java language version to 17
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+// prepares the content of the final zip/tar file
+tasks.register('prepareDistribution', Copy) {
+    // save whole distribution to `build/distribution`
+    into layout.buildDirectory.dir("distribution/$project.name")
+
+    // Substitute property tokens in files
+    from(fileTree('src/main/mod')) {
+        exclude "**/*.png"
+        filter(ReplaceTokens, tokens: [modVersion: rootProject.version, zomboidVersion: rootProject.zomboidVersion])
+    }
+    // just include pngs without substitution
+    from(fileTree('src/main/mod')) {
+        include "**/*.png"
+    }
+
+}
+
+// set task dependencies
+// if you run e.g. distZip, everything necessary is run before
+tasks.prepareDistribution.dependsOn(jar)
+tasks.installDist.dependsOn(prepareDistribution)
+tasks.distZip.dependsOn(installDist)
+tasks.distTar.dependsOn(installDist)
+
+// remove version number from final artifacts (zip/tar files and jar file inside)
+tasks.jar.setVersion('')
+tasks.distZip.setVersion('')
+tasks.distTar.setVersion('')
+
+// define what comes into the final distribution
+distributions {
+    main {
+        distributionBaseName = project.name
+
+        contents {
+            from(fileTree('src/main/lua')) {
+                into "media/lua"
+            }
+            from(layout.buildDirectory.dir("distribution/$project.name"))
+            from(layout.buildDirectory.dir("libs")) {
+                include "${project.name}.jar"
+            }
+        }
+    }
+
+
+}

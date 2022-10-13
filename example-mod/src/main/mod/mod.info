@@ -1,0 +1,7 @@
+name=Storm-Example-Mod
+poster=poster.png
+description=shows how to make a module with storm
+id=Storm-Example-Mod
+url=https://github.com/mlem/storm/example-mod
+modversion=@modVersion@
+pzversion=@zomboidVersion@
