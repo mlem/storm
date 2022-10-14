@@ -77,7 +77,7 @@ jobs:
       - name: Assemble classes
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: currentVersion
+          arguments: currentVersion -PversionSuffix=${{ env.VERSIONSUFFIX }}
       # Assemble distribution
       - name: Assemble distributions
         uses: burrunan/gradle-cache-action@v1
