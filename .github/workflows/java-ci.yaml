@@ -81,7 +81,7 @@ jobs:
       - name: Assemble distributions
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: distZip distTar -s
+          arguments: distZip distTar -s -PCI=${{ env.CI }}
       # Run unit tests with gradle
       - name: Run Unit Tests
         uses: burrunan/gradle-cache-action@v1
