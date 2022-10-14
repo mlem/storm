@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PZ_VERSION: "41.76"
+      VERSIONSUFFIX: ${{ secrets.VERSIONSUFFIX }}
     steps:
       # Checkout repository
       - uses: actions/checkout@v3
@@ -81,7 +82,7 @@ jobs:
       - name: Assemble distributions
         uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: distZip distTar -s
+          arguments: distZip distTar -s -PversionSuffix=${{ env.VERSIONSUFFIX }}
       # Run unit tests with gradle
       - name: Run Unit Tests
         uses: burrunan/gradle-cache-action@v1
