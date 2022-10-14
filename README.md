@@ -30,7 +30,7 @@ This is all in the past, now that Storm is here. Mod developers can now use a co
 
 ## Installation
 
-- Download the [latest release](https://github.com/pzstorm/storm/releases/latest) from the project's Github repository.
+- Download the [latest release](https://github.com/mlem/storm/releases/latest) from the project's Github repository.
 - Extract the archive in your Project Zomboid root directory.
 
 When updating an existing version remember to remove the contents of the old version before extracting the new version, as to avoid having redundant and possibly conflicting files in your installation directory. In future Storm versions this process will be automated for you.
