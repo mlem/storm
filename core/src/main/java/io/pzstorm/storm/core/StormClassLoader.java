@@ -53,8 +53,20 @@ public class StormClassLoader extends ClassLoader {
 			"java.", "org.objectweb.asm.", "sun.", "com.sun.", "org.xml.", "org.w3c.",
 			"javax.script.", "javax.management.", "javax.imageio.", "javax.xml.", "jdk.internal.reflect.",
 			"io.pzstorm.storm.logging.StormLogger", "io.pzstorm.storm.core.StormBootstrap",
-			"io.pzstorm.storm.core.StormClassLoader"
+			"io.pzstorm.storm.core.StormClassLoader", "module-info"
 	);
+
+
+	/**
+	 * <p>
+	 * {@code Set} of class prefixes that mark classes to not load with any {@code ClassLoader}.
+	 */
+	@SuppressWarnings("SpellCheckingInspection")
+	private static final ImmutableSet<String> CLASS_TOTAL_BLACKLIST = ImmutableSet.of(
+			"module-info"
+	);
+
+
 	/**
 	 * {@code ClassLoader} that is the parent of this {@code ClassLoader}.
 	 * When loading classes, those classes not matching the whitelist pattern will have
@@ -90,7 +102,16 @@ public class StormClassLoader extends ClassLoader {
 	 */
 	@Contract(pure = true)
 	static boolean isBlacklistedClass(String name) {
-		return CLASS_BLACKLIST.stream().anyMatch(name::startsWith);
+		return CLASS_BLACKLIST.stream().anyMatch(name::startsWith)
+				|| CLASS_TOTAL_BLACKLIST.stream().anyMatch(name::startsWith);
+	}
+	/**
+	 * Returns {@code true} if at least one prefix pattern in total blacklist matches the given name.
+	 * When a class name is considered <i>totally blacklisted</i> it will not be loaded by any {@code ClassLoader}.
+	 */
+	@Contract(pure = true)
+	static boolean isTotallyBlacklistedClass(String name) {
+		return CLASS_TOTAL_BLACKLIST.stream().anyMatch(name::startsWith);
 	}
 
 	/**
@@ -170,15 +191,17 @@ public class StormClassLoader extends ClassLoader {
 	 * @throws ClassNotFoundException if the class could not be found.
 	 */
 	private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-
+		if(isTotallyBlacklistedClass(name)) {
+			return null;
+		}
 		Class<?> clazz = findLoadedClass(name);
 		byte[] input = new byte[0];
 		if (clazz == null)
 		{
-			StormLogger.debug("Preparing to load class " + name);
+			StormLogger.detail("Preparing to load class " + name);
 			if (!isBlacklistedClass(name))
 			{
-				StormLogger.debug("Loading with StormClassLoader");
+				StormLogger.detail("Loading with StormClassLoader");
 				try {
 					input = getRawClassByteArray(name);
 
@@ -212,7 +235,7 @@ public class StormClassLoader extends ClassLoader {
 		// if the class is not whitelisted delegate loading to parent class loader
 		if (clazz == null)
 		{
-			StormLogger.debug("Loading with application class loader");
+			StormLogger.detail("Loading with application class loader");
 			clazz = parentClassLoader.loadClass(name);
 		}
 		if (resolve) {

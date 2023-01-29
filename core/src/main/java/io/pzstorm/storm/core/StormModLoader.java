@@ -31,10 +31,8 @@ import java.util.jar.JarEntry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.annotations.UnmodifiableView;
+import io.pzstorm.storm.event.StormEventHandler;
+import org.jetbrains.annotations.*;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -58,6 +56,17 @@ import io.pzstorm.storm.mod.ZomboidMod;
  */
 public class StormModLoader extends URLClassLoader {
 
+
+	/**
+	 * <p>
+	 * {@code Set} of class prefixes that mark classes to not load with any {@code ClassLoader}.
+	 */
+	@SuppressWarnings("SpellCheckingInspection")
+	private static final ImmutableSet<String> CLASS_TOTAL_BLACKLIST = ImmutableSet.of(
+			"module-info"
+	);
+
+
 	/**
 	 * This catalog contains {@link ModMetadata} instances mapped to directory names.
 	 */
@@ -80,6 +89,15 @@ public class StormModLoader extends URLClassLoader {
 
 	public StormModLoader() {
 		super(getResourcePaths());
+	}
+
+	/**
+	 * Returns {@code true} if at least one prefix pattern in total blacklist matches the given name.
+	 * When a class name is considered <i>totally blacklisted</i> it will not be loaded by any {@code ClassLoader}.
+	 */
+	@Contract(pure = true)
+	static boolean isTotallyBlacklistedClass(String name) {
+		return CLASS_TOTAL_BLACKLIST.stream().anyMatch(name::startsWith);
 	}
 
 	/**
@@ -134,6 +152,9 @@ public class StormModLoader extends URLClassLoader {
 		StormLogger.info(String.format("Resetting event dispatcher"));
 
 		StormEventDispatcher.reset();
+
+		// re-add mandatory StormEventHandler
+		StormEventDispatcher.registerEventHandler(StormEventHandler.class);
 	}
 
 	/**
@@ -249,8 +270,10 @@ public class StormModLoader extends URLClassLoader {
 					String entryName = jarEntry.getName();
 					String className = entryName.substring(0, entryName.length() - 6);
 					try {
-						URLClassLoader childClassLoader = jarFileClassLoader(modJar);
-						modClasses.add(Class.forName(className.replace('/', '.'), true, childClassLoader));
+						if(!isTotallyBlacklistedClass(className)) {
+							URLClassLoader childClassLoader = jarFileClassLoader(modJar);
+							modClasses.add(Class.forName(className.replace('/', '.'), true, childClassLoader));
+						}
 					}
 					catch (ClassNotFoundException e) {
 						throw new RuntimeException(e);
